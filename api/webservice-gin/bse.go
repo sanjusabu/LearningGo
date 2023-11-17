@@ -35,39 +35,40 @@ func main() {
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
 		fmt.Printf("status code error: %d %s", res.StatusCode, res.Status)
+		return
 	}
 	body, err := ioutil.ReadAll(res.Body)
-
-	assetNameRegex := regexp.MustCompile(`<a[^>]*>([^<]+)<br />`)
-	tickerRegex := regexp.MustCompile(`>([^<]+)&nbsp;&nbsp;&nbsp;<strong>`)
+	fmt.Println("Content-Type: ", res.Header.Get("Content-Type"))
+	symbolinfoRegex := regexp.MustCompile(`<a[^>]*>([^<]+)<br />`)
+	symbolRegex := regexp.MustCompile(`>([^<]+)&nbsp;&nbsp;&nbsp;<strong>`)
 	codeRegex := regexp.MustCompile(`<strong>([^<]+)</strong>`)
-	pincodeRegex := regexp.MustCompile(`/(\d+)/'`)
+	bsecodeRegex := regexp.MustCompile(`/(\d+)/'`)
 
 	// Find matches using regular expressions
-	assetNameMatches := assetNameRegex.FindStringSubmatch(string(body))
-	tickerMatches := tickerRegex.FindStringSubmatch(string(body))
+	symbolinfoMatches := symbolinfoRegex.FindStringSubmatch(string(body))
+	symbolMatches := symbolRegex.FindStringSubmatch(string(body))
 	codeMatches := codeRegex.FindStringSubmatch(string(body))
-	pincodeMatches := pincodeRegex.FindStringSubmatch(string(body))
+	bsecodeMatches := bsecodeRegex.FindStringSubmatch(string(body))
 
 	// Extract data from matches
-	assetName := ""
-	ticker := ""
-	code := ""
-	pincode := ""
+	symbolinfo := ""
+	symbol := ""
+	isin := ""
+	bsecode := ""
 
-	if len(assetNameMatches) > 1 {
-		assetName = strings.TrimSpace(assetNameMatches[1])
+	if len(symbolinfoMatches) > 1 {
+		symbolinfo = strings.TrimSpace(symbolinfoMatches[1])
 	}
 
-	if len(tickerMatches) > 1 {
-		ticker = strings.TrimSpace(tickerMatches[1])
+	if len(symbolMatches) > 1 {
+		symbol = strings.TrimSpace(symbolMatches[1])
 	}
 
 	if len(codeMatches) > 1 {
-		code = strings.TrimSpace(codeMatches[1])
+		isin = strings.TrimSpace(codeMatches[1])
 	}
-	if len(pincodeMatches) > 1 {
-		pincode = strings.TrimSpace(pincodeMatches[1])
+	if len(bsecodeMatches) > 1 {
+		bsecode = strings.TrimSpace(bsecodeMatches[1])
 	}
 
 	// fmt.Println(string(body))
@@ -76,15 +77,15 @@ func main() {
 		return
 	}
 	data := struct {
-		Company string `json:"company"`
-		Ticker  string `json:"ticker"`
-		Code    string `json:"code"`
-		Pincode string `json:"pincode"`
+		Symbol_info string `json:"symbol_info"`
+		Symbol      string `json:"symbol"`
+		ISIN        string `json:"isin"`
+		Bsecode     string `json:"bsecode"`
 	}{
-		Company: assetName,
-		Ticker:  ticker,
-		Code:    code,
-		Pincode: pincode,
+		Symbol_info: symbolinfo,
+		Symbol:      symbol,
+		ISIN:        isin,
+		Bsecode:     bsecode,
 	}
 	// converting to json
 	jsonData, jerr := json.MarshalIndent(data, "", "  ")
