@@ -1,3 +1,3 @@
-module exaample/controllers
+module example.com/project
 
 go 1.21.4

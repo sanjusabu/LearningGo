@@ -1,7 +1,7 @@
 package main
 
 import (
-	b "api/controllers"
+	controllers "example.com/controllers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,9 +27,21 @@ type Stock struct {
 
 func main() {
 	router := gin.Default()
-	st := new(Stock)
-	st.Ticker = "EML"
-	router.GET("/bsedata", b.Calculatebse("EML", st, "EQ"))
+	stock := &controllers.Stock{
+		Ticker: "EML",
+	}
+	router.GET("/bsedata", func(c *gin.Context) {
+		ticker := c.Query("ticker")
+		querytype := c.Query("type")
+		controllers.Calculatebse(ticker, stock, querytype)
+		c.JSON(200, stock)
+	})
+
+	router.GET("/nsedata", func(c *gin.Context) {
+		ticker := c.Query("ticker")
+		controllers.Calculatense(ticker, stock)
+		c.JSON(200, stock)
+	})
 
 	router.Run("localhost:8080")
 }
